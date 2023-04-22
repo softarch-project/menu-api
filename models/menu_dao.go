@@ -1,14 +1,16 @@
 package models
 
 type ShortMenuDAO struct {
-	Id                     string `db:"id"`
-	Name                   string `db:"name"`
-	ThumbnailImage         string `db:"thumbnailImage"`
-	FullPrice              int64  `db:"fullPrice"`
-	DiscountedPercent      int64  `db:"discountedPercent"`
-	DiscountedTimePeriodId int64  `db:"discountedTimePeriodId"`
-	Sold                   int64  `db:"sold"`
-	TotalInStock           int64  `db:"totalInStock"`
+	Id                string `db:"id"`
+	Name              string `db:"name"`
+	ThumbnailImage    string `db:"thumbnailImage"`
+	FullPrice         int64  `db:"fullPrice"`
+	DiscountedPercent int64  `db:"discountedPercent"`
+	// DiscountedTimePeriodId int64  `db:"discountedTimePeriodId"`
+	Begin        string `db:"begin"`
+	End          string `db:"end"`
+	Sold         int64  `db:"sold"`
+	TotalInStock int64  `db:"totalInStock"`
 }
 
 type FullMenuDAO struct {

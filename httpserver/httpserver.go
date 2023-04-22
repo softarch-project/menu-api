@@ -7,6 +7,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/softarch-project/menu-api/config"
 	"github.com/softarch-project/menu-api/handler"
+	"github.com/softarch-project/menu-api/repository"
+	"github.com/softarch-project/menu-api/service"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -31,6 +33,13 @@ func (server *Server) SetUpRouter() {
 	server.App.Use(cors.Default())
 	server.App.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
+	menuRepository := repository.NewMenuRepository(server.Database)
+
+	menuService := service.NewMenuService(menuRepository)
+
+	menuHandler := handler.NewMenuHandler(menuService)
+
+	server.App.GET("/shortMenu", menuHandler.GetAllShortMenu)
 	server.App.GET("/", handler.HealthCheckHandler)
 }
 

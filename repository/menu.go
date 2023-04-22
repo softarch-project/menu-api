@@ -13,9 +13,9 @@ type menuRepository struct {
 
 type MenuRepository interface {
 	QueryAllShortMenu() ([]models.ShortMenu, error)
-	QueryAllFullMenu() ([]models.FullMenu, error)
-	InsertShortMenu(models.ShortMenu) error
-	InsertFullMenu(models.FullMenu) error
+	// QueryAllFullMenu() ([]models.FullMenu, error)
+	// InsertShortMenu(models.ShortMenu) error
+	// InsertFullMenu(models.FullMenu) error
 }
 
 func NewMenuRepository(db *sqlx.DB) *menuRepository {
@@ -27,77 +27,95 @@ func NewMenuRepository(db *sqlx.DB) *menuRepository {
 var ErrFoundMoreThanOne error = errors.New("found more than one row in db")
 var ErrNotFound error = errors.New("not found in db")
 
-func (r *menuRepository) InsertShortMenu(shortMenuDAO models.ShortMenuDAO) error {
-	logger := generateLogger("InsertMenu")
+// func (r *menuRepository) InsertShortMenu(shortMenuDAO models.ShortMenuDAO) error {
+// 	logger := generateLogger("InsertMenu")
 
-	_, err := r.db.Query(`
-		INSERT INTO`+"`menu.shortMenu`"+`(id, name, thumbnailImage, fullPrice, discountedPercent, discountedTimePeriodId, sold, totalInStock)
-		VALUES (?, ?, ?, ?, ?)
-	`,
-		shortMenuDAO.Id,
-		shortMenuDAO.Name,
-		shortMenuDAO.ThumbnailImage,
-		shortMenuDAO.FullPrice,
-		shortMenuDAO.DiscountedPercent,
-		shortMenuDAO.DiscountedTimePeriodId,
-		shortMenuDAO.Sold,
-		shortMenuDAO.TotalInStock,
-	)
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
+// 	_, err := r.db.Query(`
+// 		INSERT INTO`+"`menu.shortMenu`"+`(id, name, thumbnailImage, fullPrice, discountedPercent, discountedTimePeriodId, sold, totalInStock)
+// 		VALUES (?, ?, ?, ?, ?)
+// 	`,
+// 		shortMenuDAO.Id,
+// 		shortMenuDAO.Name,
+// 		shortMenuDAO.ThumbnailImage,
+// 		shortMenuDAO.FullPrice,
+// 		shortMenuDAO.DiscountedPercent,
+// 		shortMenuDAO.DiscountedTimePeriodId,
+// 		shortMenuDAO.Sold,
+// 		shortMenuDAO.TotalInStock,
+// 	)
+// 	if err != nil {
+// 		logger.Error(err)
+// 		return err
+// 	}
 
-	logger.Info("Insert short menu")
-	return nil
-}
+// 	logger.Info("Insert short menu")
+// 	return nil
+// }
 
-func (r *menuRepository) InsertFuLLMenu(fullMenuDAO models.FullMenuDAO) error {
-	logger := generateLogger("InsertMenu")
+// func (r *menuRepository) InsertFuLLMenu(fullMenuDAO models.FullMenuDAO) error {
+// 	logger := generateLogger("InsertMenu")
 
-	_, err := r.db.Query(`
-		INSERT INTO`+"`menu.shortMenu`"+`(id, name, thumbnailImage, fullPrice, discountedPercent, discountedTimePeriodId, sold, totalInStock, LargeImage, optionsId)
-		VALUES (?, ?, ?, ?, ?)
-	`,
-		fullMenuDAO.Id,
-		fullMenuDAO.Name,
-		fullMenuDAO.ThumbnailImage,
-		fullMenuDAO.FullPrice,
-		fullMenuDAO.DiscountedPercent,
-		fullMenuDAO.DiscountedTimePeriodId,
-		fullMenuDAO.Sold,
-		fullMenuDAO.TotalInStock,
-		fullMenuDAO.LargeImage,
-		fullMenuDAO.OptionsId,
-	)
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
+// 	_, err := r.db.Query(`
+// 		INSERT INTO`+"`menu.shortMenu`"+`(id, name, thumbnailImage, fullPrice, discountedPercent, discountedTimePeriodId, sold, totalInStock, LargeImage, optionsId)
+// 		VALUES (?, ?, ?, ?, ?)
+// 	`,
+// 		fullMenuDAO.Id,
+// 		fullMenuDAO.Name,
+// 		fullMenuDAO.ThumbnailImage,
+// 		fullMenuDAO.FullPrice,
+// 		fullMenuDAO.DiscountedPercent,
+// 		fullMenuDAO.DiscountedTimePeriodId,
+// 		fullMenuDAO.Sold,
+// 		fullMenuDAO.TotalInStock,
+// 		fullMenuDAO.LargeImage,
+// 		fullMenuDAO.OptionsId,
+// 	)
+// 	if err != nil {
+// 		logger.Error(err)
+// 		return err
+// 	}
 
-	logger.Info("Insert full menu")
-	return nil
-}
+// 	logger.Info("Insert full menu")
+// 	return nil
+// }
 
-func (r *menuRepository) QueryAllShortMenu() (shortMenu []models.ShortMenu, err error) {
+func (r *menuRepository) QueryAllShortMenu() (shortMenus []models.ShortMenu, err error) {
 	logger := generateLogger("QueryAllShortMenu")
 
-	var shortMenus []models.ShortMenu
-	err = r.db.Select(&shortMenus, `
-		SELECT menu.id, name, thumbnailImage, fullPrice, discountedPercent, discountedTimePeriod.begin, discountedTimePeriod.end, sold, totalInStock
-		FROM menu JOIN discountedTimePeriod ON menu.id == discountedTimePeriod.id
+	var menu []models.ShortMenuDAO
+	err = r.db.Select(&menu, `
+		SELECT Menu.id, name, thumbnailImage, fullPrice, discountedPercent, DiscountedTimePeriod.begin,
+		DiscountedTimePeriod.end, sold, totalInStock
+		FROM Menu JOIN DiscountedTimePeriod ON Menu.id = DiscountedTimePeriod.id
 		`)
 
 	if err != nil {
 		logger.Error(err)
-		return shortMenu, err
+		return shortMenus, err
 	}
 
-	menuLength := len(shortMenu)
+	menuLength := len(menu)
 	if menuLength == 0 {
 		logger.Error(ErrNotFound)
-		return shortMenu, ErrNotFound
+		return shortMenus, ErrNotFound
 	}
 
-	return shortMenu, nil
+	for _, m := range menu {
+		shortMenus = append(shortMenus,
+			models.ShortMenu{
+				Id:                m.Id,
+				Name:              m.Name,
+				ThumbnailImage:    m.ThumbnailImage,
+				FullPrice:         m.FullPrice,
+				DiscountedPercent: m.DiscountedPercent,
+				DiscountedTimePeriod: struct {
+					Begin string "json:\"begin\" db:\"begin\""
+					End   string "json:\"end\" db:\"end\""
+				}{m.Begin, m.End},
+				Sold:         m.Sold,
+				TotalInStock: m.TotalInStock,
+			},
+		)
+	}
+	return shortMenus, nil
 }
