@@ -3,7 +3,6 @@ package httpserver
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 	"github.com/softarch-project/menu-api/config"
 	"github.com/softarch-project/menu-api/handler"
@@ -11,15 +10,16 @@ import (
 	"github.com/softarch-project/menu-api/service"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Server struct {
 	App      *gin.Engine
-	Database *sqlx.DB
+	Database *mongo.Client
 	Config   *config.Config
 }
 
-func NewHTTPServer(config *config.Config, db *sqlx.DB) *Server {
+func NewHTTPServer(config *config.Config, db *mongo.Client) *Server {
 	gin.SetMode(config.App.GinMode)
 	app := gin.Default()
 	return &Server{
@@ -33,7 +33,10 @@ func (server *Server) SetUpRouter() {
 	server.App.Use(cors.Default())
 	server.App.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	menuRepository := repository.NewMenuRepository(server.Database)
+	db := server.Database.Database("Menu")
+	coll := db.Collection("menus")
+
+	menuRepository := repository.NewMenuRepository(coll)
 
 	menuService := service.NewMenuService(menuRepository)
 

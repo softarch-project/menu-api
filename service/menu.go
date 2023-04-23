@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/softarch-project/menu-api/models"
 	"github.com/softarch-project/menu-api/repository"
@@ -11,7 +13,7 @@ type menuService struct {
 }
 
 type MenuService interface {
-	GetAllShortMenu() ([]models.ShortMenu, error)
+	GetAllShortMenu(ctx context.Context) ([]models.ShortMenu, error)
 }
 
 func NewMenuService(menuRepository repository.MenuRepository) *menuService {
@@ -20,11 +22,11 @@ func NewMenuService(menuRepository repository.MenuRepository) *menuService {
 	}
 }
 
-func (s *menuService) GetAllShortMenu() (shortMenu []models.ShortMenu, err error) {
+func (s *menuService) GetAllShortMenu(ctx context.Context) (shortMenu []models.ShortMenu, err error) {
 	log.Info("Getting all short menu(s)...")
 	defer log.Info("End getting all short menu(s).")
 
-	shortMenu, err = s.menuRepository.QueryAllShortMenu()
+	shortMenu, err = s.menuRepository.QueryAllShortMenu(ctx)
 	if err != nil {
 		log.Error(err)
 		return

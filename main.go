@@ -16,9 +16,9 @@ func init() {
 }
 
 func main() {
-	db, err := database.NewMySQLDatabaseConnection(serverConfig)
+	db, err := database.ConnectDB(serverConfig)
 	if err != nil {
-		log.Fatalf("error, create mysql database connection, %s", err.Error())
+		log.Fatalf("error, create mongo database connection, %s", err.Error())
 	}
 
 	server := httpserver.NewHTTPServer(serverConfig, db)

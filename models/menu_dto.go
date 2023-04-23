@@ -1,36 +1,41 @@
 package models
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type ShortMenu struct {
-	Id                   string `json:"id" db:"id"`
-	Name                 string `json:"name" db:"name"`
-	ThumbnailImage       string `json:"thumbnailImage" db:"thumbnailImage"`
-	FullPrice            int64  `json:"fullPrice" db:"fullPrice"`
-	DiscountedPercent    int64  `json:"discountedPercent" db:"discountedPercent"`
-	DiscountedTimePeriod struct {
-		Begin string `json:"begin" db:"begin"`
-		End   string `json:"end" db:"end"`
-	} `json:"discountedTimePeriod" db:"discountedTimePeriod"`
-	Sold         int64 `json:"sold" db:"sold"`
-	TotalInStock int64 `json:"totalInStock" db:"totalInStock"`
+	Id                   primitive.ObjectID   `json:"id,omitempty"`
+	Name                 string               `json:"name,omitempty" validate:"required"`
+	ThumbnailImage       string               `json:"thumbnailImage,omitempty" validate:"required"`
+	FullPrice            int64                `json:"fullPrice,omitempty" validate:"required"`
+	DiscountedPercent    int64                `json:"discountedPercent,omitempty" validate:"required"`
+	DiscountedTimePeriod DiscountedTimePeriod `json:"discountedTimePeriod,omitempty" validate:"required"`
+	Sold                 int64                `json:"sold,omitempty" validate:"required"`
+	TotalInStock         int64                `json:"totalInStock,omitempty" validate:"required"`
 }
 
 type FullMenu struct {
-	Id                   string `json:"id" db:"id"`
-	Name                 string `json:"name" db:"name"`
-	ThumbnailImage       string `json:"thumbnailImage" db:"thumbnailImage"`
-	FullPrice            int64  `json:"fullPrice" db:"fullPrice"`
-	DiscountedPercent    int64  `json:"discountedPercent" db:"discountedPercent"`
-	DiscountedTimePeriod struct {
-		Begin string `json:"begin" db:"begin"`
-		End   string `json:"end" db:"end"`
-	} `json:"discountedTimePeriod" db:"discountedTimePeriod"`
-	Sold         int64  `json:"sold" db:"sold"`
-	TotalInStock int64  `json:"totalInStock" db:"totalInStock"`
-	LargeImage   string `json:"largeImage" db:"largeImage"`
-	Options      []struct {
-		Label   string `json:"label" db:"label"`
-		Choices []struct {
-			Label string `json:"label" db:"label"`
-		} `json:"choices" db:"choices"`
-	} `json:"options" db:"options"`
+	Id                   primitive.ObjectID   `json:"id,omitempty"`
+	Name                 string               `json:"name,omitempty" validate:"required"`
+	ThumbnailImage       string               `json:"thumbnailImage,omitempty" validate:"required"`
+	FullPrice            int64                `json:"fullPrice,omitempty" validate:"required"`
+	DiscountedPercent    int64                `json:"discountedPercent,omitempty" validate:"required"`
+	DiscountedTimePeriod DiscountedTimePeriod `json:"discountedTimePeriod,omitempty" validate:"required"`
+	Sold                 int64                `json:"sold,omitempty" validate:"required"`
+	TotalInStock         int64                `json:"totalInStock,omitempty" validate:"required"`
+	LargeImage           string               `json:"largeImage,omitempty" validate:"required"`
+	Options              []Option             `json:"options,omitempty" validate:"required"`
+}
+
+type DiscountedTimePeriod struct {
+	Begin string `json:"begin,omitempty" validate:"required"`
+	End   string `json:"end,omitempty" validate:"required"`
+}
+
+type Option struct {
+	Label   string   `json:"label,omitempty" validate:"required"`
+	Choices []Choice `json:"choices,omitempty" validate:"required"`
+}
+
+type Choice struct {
+	Label string `json:"label,omitempty" validate:"required"`
 }

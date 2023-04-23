@@ -13,11 +13,7 @@ type App struct {
 }
 
 type Database struct {
-	Hostname string `mapstructure:"MYSQL_HOSTNAME"`
-	Port     string `mapstructure:"MYSQL_PORT"`
-	Username string `mapstructure:"MYSQL_USERNAME"`
-	Password string `mapstructure:"MYSQL_PASSWORD"`
-	Database string `mapstructure:"MYSQL_DATABASE"`
+	Uri string `mapstructure:"connectionURI"`
 }
 
 type Config struct {
@@ -34,11 +30,7 @@ func LoadConfig() *Config {
 	appConfig.GinMode = os.Getenv("GIN_MODE")
 	appConfig.Port = os.Getenv("PORT")
 
-	databaseConfig.Hostname = os.Getenv("MYSQL_HOSTNAME")
-	databaseConfig.Port = os.Getenv("MYSQL_PORT")
-	databaseConfig.Username = os.Getenv("MYSQL_USERNAME")
-	databaseConfig.Password = os.Getenv("MYSQL_PASSWORD")
-	databaseConfig.Database = os.Getenv("MYSQL_DATABASE")
+	databaseConfig.Uri = os.Getenv("connectionURI")
 
 	return &Config{
 		App:      appConfig,

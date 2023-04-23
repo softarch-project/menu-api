@@ -18,7 +18,7 @@ func NewMenuHandler(menuService service.MenuService) menuHandler {
 }
 
 func (h *menuHandler) GetAllShortMenu(c *gin.Context) {
-	shortMenus, err := h.menuService.GetAllShortMenu()
+	shortMenus, err := h.menuService.GetAllShortMenu(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

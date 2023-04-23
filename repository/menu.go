@@ -1,121 +1,62 @@
 package repository
 
 import (
+	"context"
 	"errors"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/softarch-project/menu-api/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	// "gopkg.in/mgo.v2/bson"
 )
 
 type menuRepository struct {
-	db *sqlx.DB
+	db                 *mongo.Database
+	resourceCollection *mongo.Collection
 }
 
 type MenuRepository interface {
-	QueryAllShortMenu() ([]models.ShortMenu, error)
+	QueryAllShortMenu(ctx context.Context) ([]models.ShortMenu, error)
 	// QueryAllFullMenu() ([]models.FullMenu, error)
 	// InsertShortMenu(models.ShortMenu) error
 	// InsertFullMenu(models.FullMenu) error
 }
 
-func NewMenuRepository(db *sqlx.DB) *menuRepository {
+func NewMenuRepository(resourceCollection *mongo.Collection) *menuRepository {
 	return &menuRepository{
-		db: db,
+		resourceCollection: resourceCollection,
 	}
 }
 
 var ErrFoundMoreThanOne error = errors.New("found more than one row in db")
 var ErrNotFound error = errors.New("not found in db")
 
-// func (r *menuRepository) InsertShortMenu(shortMenuDAO models.ShortMenuDAO) error {
-// 	logger := generateLogger("InsertMenu")
-
-// 	_, err := r.db.Query(`
-// 		INSERT INTO`+"`menu.shortMenu`"+`(id, name, thumbnailImage, fullPrice, discountedPercent, discountedTimePeriodId, sold, totalInStock)
-// 		VALUES (?, ?, ?, ?, ?)
-// 	`,
-// 		shortMenuDAO.Id,
-// 		shortMenuDAO.Name,
-// 		shortMenuDAO.ThumbnailImage,
-// 		shortMenuDAO.FullPrice,
-// 		shortMenuDAO.DiscountedPercent,
-// 		shortMenuDAO.DiscountedTimePeriodId,
-// 		shortMenuDAO.Sold,
-// 		shortMenuDAO.TotalInStock,
-// 	)
-// 	if err != nil {
-// 		logger.Error(err)
-// 		return err
-// 	}
-
-// 	logger.Info("Insert short menu")
-// 	return nil
-// }
-
-// func (r *menuRepository) InsertFuLLMenu(fullMenuDAO models.FullMenuDAO) error {
-// 	logger := generateLogger("InsertMenu")
-
-// 	_, err := r.db.Query(`
-// 		INSERT INTO`+"`menu.shortMenu`"+`(id, name, thumbnailImage, fullPrice, discountedPercent, discountedTimePeriodId, sold, totalInStock, LargeImage, optionsId)
-// 		VALUES (?, ?, ?, ?, ?)
-// 	`,
-// 		fullMenuDAO.Id,
-// 		fullMenuDAO.Name,
-// 		fullMenuDAO.ThumbnailImage,
-// 		fullMenuDAO.FullPrice,
-// 		fullMenuDAO.DiscountedPercent,
-// 		fullMenuDAO.DiscountedTimePeriodId,
-// 		fullMenuDAO.Sold,
-// 		fullMenuDAO.TotalInStock,
-// 		fullMenuDAO.LargeImage,
-// 		fullMenuDAO.OptionsId,
-// 	)
-// 	if err != nil {
-// 		logger.Error(err)
-// 		return err
-// 	}
-
-// 	logger.Info("Insert full menu")
-// 	return nil
-// }
-
-func (r *menuRepository) QueryAllShortMenu() (shortMenus []models.ShortMenu, err error) {
+func (r *menuRepository) QueryAllShortMenu(ctx context.Context) ([]models.ShortMenu, error) {
 	logger := generateLogger("QueryAllShortMenu")
 
-	var menu []models.ShortMenuDAO
-	err = r.db.Select(&menu, `
-		SELECT Menu.id, name, thumbnailImage, fullPrice, discountedPercent, DiscountedTimePeriod.begin,
-		DiscountedTimePeriod.end, sold, totalInStock
-		FROM Menu JOIN DiscountedTimePeriod ON Menu.id = DiscountedTimePeriod.id
-		`)
+	var shortMenus []models.ShortMenu
+
+	results, err := r.resourceCollection.Find(ctx, bson.M{})
 
 	if err != nil {
-		logger.Error(err)
-		return shortMenus, err
+		if err == mongo.ErrNoDocuments {
+			logger.Warnf("no resources found: %v", err)
+			return nil, err
+		}
+		logger.Warnf("find resources failed: %v", err)
+		return nil, err
+	}
+	defer results.Close(ctx)
+
+	for results.Next(ctx) {
+		var menu models.ShortMenu
+		if err = results.Decode(&menu); err != nil {
+			logger.Warnf("decode resource failed: %v", err)
+			return nil, err
+		}
+		shortMenus = append(shortMenus, menu)
 	}
 
-	menuLength := len(menu)
-	if menuLength == 0 {
-		logger.Error(ErrNotFound)
-		return shortMenus, ErrNotFound
-	}
-
-	for _, m := range menu {
-		shortMenus = append(shortMenus,
-			models.ShortMenu{
-				Id:                m.Id,
-				Name:              m.Name,
-				ThumbnailImage:    m.ThumbnailImage,
-				FullPrice:         m.FullPrice,
-				DiscountedPercent: m.DiscountedPercent,
-				DiscountedTimePeriod: struct {
-					Begin string "json:\"begin\" db:\"begin\""
-					End   string "json:\"end\" db:\"end\""
-				}{m.Begin, m.End},
-				Sold:         m.Sold,
-				TotalInStock: m.TotalInStock,
-			},
-		)
-	}
+	logger.Info("find short menus successfully")
 	return shortMenus, nil
 }
