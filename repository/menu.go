@@ -2,12 +2,13 @@ package repository
 
 import (
 	"context"
-	"errors"
+	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/softarch-project/menu-api/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	// "gopkg.in/mgo.v2/bson"
 )
 
 type menuRepository struct {
@@ -16,8 +17,9 @@ type menuRepository struct {
 }
 
 type MenuRepository interface {
-	QueryAllShortMenu(ctx context.Context) ([]models.ShortMenu, error)
-	QueryAllFullMenu(ctx context.Context) ([]models.FullMenu, error)
+	QueryAllShortMenu(ctx *gin.Context) ([]models.ShortMenu, error)
+	QueryAllFullMenu(ctx *gin.Context) ([]models.FullMenu, error)
+	DeleteMenu(ctx *gin.Context) error
 	// InsertShortMenu(models.ShortMenu) error
 	// InsertFullMenu(models.FullMenu) error
 }
@@ -28,10 +30,7 @@ func NewMenuRepository(resourceCollection *mongo.Collection) *menuRepository {
 	}
 }
 
-var ErrFoundMoreThanOne error = errors.New("found more than one row in db")
-var ErrNotFound error = errors.New("not found in db")
-
-func (r *menuRepository) QueryAllShortMenu(ctx context.Context) ([]models.ShortMenu, error) {
+func (r *menuRepository) QueryAllShortMenu(ctx *gin.Context) ([]models.ShortMenu, error) {
 	logger := generateLogger("QueryAllShortMenu")
 
 	var shortMenus []models.ShortMenu
@@ -61,8 +60,8 @@ func (r *menuRepository) QueryAllShortMenu(ctx context.Context) ([]models.ShortM
 	return shortMenus, nil
 }
 
-func (r *menuRepository) QueryAllFullMenu(ctx context.Context) ([]models.FullMenu, error) {
-	logger := generateLogger("QueryAllShortMenu")
+func (r *menuRepository) QueryAllFullMenu(ctx *gin.Context) ([]models.FullMenu, error) {
+	logger := generateLogger("QueryAllFullMenu")
 
 	var fullMenus []models.FullMenu
 
@@ -89,4 +88,26 @@ func (r *menuRepository) QueryAllFullMenu(ctx context.Context) ([]models.FullMen
 
 	logger.Info("find full menus successfully")
 	return fullMenus, nil
+}
+
+func (r *menuRepository) DeleteMenu(c *gin.Context) (err error) {
+	logger := generateLogger("DeleteMenu")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	menuId := c.Param("menuId")
+	defer cancel()
+
+	objId, _ := primitive.ObjectIDFromHex(menuId)
+	logger.Info(objId)
+	res, err := r.resourceCollection.DeleteOne(ctx, bson.M{"_id": objId})
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	if res.DeletedCount < 1 {
+		logger.Warnf("no resources found: %v", err)
+		return mongo.ErrNoDocuments
+	}
+
+	return nil
 }

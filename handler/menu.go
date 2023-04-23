@@ -45,3 +45,16 @@ func (h *menuHandler) GetFullMenu(c *gin.Context) {
 		Data:    fullMenus,
 	})
 }
+
+func (h *menuHandler) DeleteMenu(c *gin.Context) {
+	err := h.menuService.DeleteMenu(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, responses.MenuResponse{
+		Status:  http.StatusOK,
+		Message: "success",
+	})
+}

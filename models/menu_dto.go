@@ -3,7 +3,7 @@ package models
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type ShortMenu struct {
-	Id                   primitive.ObjectID   `json:"id,omitempty"`
+	Id                   primitive.ObjectID   `json:"id,omitempty" bson:"_id"`
 	Name                 string               `json:"name,omitempty" validate:"required"`
 	ThumbnailImage       string               `json:"thumbnailImage,omitempty" validate:"required"`
 	FullPrice            int64                `json:"fullPrice,omitempty" validate:"required"`
@@ -14,7 +14,7 @@ type ShortMenu struct {
 }
 
 type FullMenu struct {
-	Id                   primitive.ObjectID   `json:"id,omitempty"`
+	Id                   primitive.ObjectID   `json:"id,omitempty" bson:"_id"`
 	Name                 string               `json:"name,omitempty" validate:"required"`
 	ThumbnailImage       string               `json:"thumbnailImage,omitempty" validate:"required"`
 	FullPrice            int64                `json:"fullPrice,omitempty" validate:"required"`
