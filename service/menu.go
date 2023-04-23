@@ -12,8 +12,10 @@ type menuService struct {
 }
 
 type MenuService interface {
-	GetShortMenu(ctx *gin.Context) ([]models.ShortMenu, error)
-	GetFullMenu(ctx *gin.Context) ([]models.FullMenu, error)
+	GetAllShortMenu(ctx *gin.Context) ([]models.ShortMenu, error)
+	GetAllFullMenu(ctx *gin.Context) ([]models.FullMenu, error)
+	GetShortMenu(ctx *gin.Context) (models.ShortMenu, error)
+	GetFullMenu(ctx *gin.Context) (models.FullMenu, error)
 	DeleteMenu(ctx *gin.Context) error
 	InsertMenu(ctx *gin.Context) (models.FullMenu, error)
 }
@@ -24,7 +26,7 @@ func NewMenuService(menuRepository repository.MenuRepository) *menuService {
 	}
 }
 
-func (s *menuService) GetShortMenu(ctx *gin.Context) (shortMenu []models.ShortMenu, err error) {
+func (s *menuService) GetAllShortMenu(ctx *gin.Context) (shortMenu []models.ShortMenu, err error) {
 	log.Info("Getting all short menu(s)...")
 	defer log.Info("End getting all short menu(s).")
 
@@ -38,7 +40,7 @@ func (s *menuService) GetShortMenu(ctx *gin.Context) (shortMenu []models.ShortMe
 	return shortMenu, nil
 }
 
-func (s *menuService) GetFullMenu(ctx *gin.Context) (fullMenus []models.FullMenu, err error) {
+func (s *menuService) GetAllFullMenu(ctx *gin.Context) (fullMenus []models.FullMenu, err error) {
 	log.Info("Getting all short menu(s)...")
 	defer log.Info("End getting all short menu(s).")
 
@@ -50,6 +52,34 @@ func (s *menuService) GetFullMenu(ctx *gin.Context) (fullMenus []models.FullMenu
 
 	log.Info("Get all short menu(s) successfully")
 	return fullMenus, nil
+}
+
+func (s *menuService) GetShortMenu(ctx *gin.Context) (shortMenu models.ShortMenu, err error) {
+	log.Info("Getting a short menu...")
+	defer log.Info("End getting a short menu.")
+
+	shortMenu, err = s.menuRepository.QueryShortMenu(ctx)
+	if err != nil {
+		log.Error(err)
+		return shortMenu, err
+	}
+
+	log.Info("Get a short menu successfully")
+	return shortMenu, nil
+}
+
+func (s *menuService) GetFullMenu(ctx *gin.Context) (fullMenu models.FullMenu, err error) {
+	log.Info("Getting a full menu...")
+	defer log.Info("End getting a full menu.")
+
+	fullMenu, err = s.menuRepository.QueryFullMenu(ctx)
+	if err != nil {
+		log.Error(err)
+		return fullMenu, err
+	}
+
+	log.Info("Get a full menu successfully")
+	return fullMenu, nil
 }
 
 func (s *menuService) DeleteMenu(ctx *gin.Context) (err error) {

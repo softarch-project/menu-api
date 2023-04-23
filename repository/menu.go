@@ -20,6 +20,8 @@ type menuRepository struct {
 type MenuRepository interface {
 	QueryAllShortMenu(ctx *gin.Context) ([]models.ShortMenu, error)
 	QueryAllFullMenu(ctx *gin.Context) ([]models.FullMenu, error)
+	QueryShortMenu(ctx *gin.Context) (models.ShortMenu, error)
+	QueryFullMenu(ctx *gin.Context) (models.FullMenu, error)
 	DeleteMenu(ctx *gin.Context) error
 	InsertMenu(ctx *gin.Context) (models.FullMenu, error)
 }
@@ -30,12 +32,12 @@ func NewMenuRepository(resourceCollection *mongo.Collection) *menuRepository {
 	}
 }
 
-func (r *menuRepository) QueryAllShortMenu(ctx *gin.Context) ([]models.ShortMenu, error) {
+func (r *menuRepository) QueryAllShortMenu(c *gin.Context) ([]models.ShortMenu, error) {
 	logger := generateLogger("QueryAllShortMenu")
 
 	var shortMenus []models.ShortMenu
 
-	results, err := r.resourceCollection.Find(ctx, bson.M{})
+	results, err := r.resourceCollection.Find(c, bson.M{})
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -45,9 +47,9 @@ func (r *menuRepository) QueryAllShortMenu(ctx *gin.Context) ([]models.ShortMenu
 		logger.Warnf("find resources failed: %v", err)
 		return nil, err
 	}
-	defer results.Close(ctx)
+	defer results.Close(c)
 
-	for results.Next(ctx) {
+	for results.Next(c) {
 		var menu models.ShortMenu
 		if err = results.Decode(&menu); err != nil {
 			logger.Warnf("decode resource failed: %v", err)
@@ -60,12 +62,12 @@ func (r *menuRepository) QueryAllShortMenu(ctx *gin.Context) ([]models.ShortMenu
 	return shortMenus, nil
 }
 
-func (r *menuRepository) QueryAllFullMenu(ctx *gin.Context) ([]models.FullMenu, error) {
+func (r *menuRepository) QueryAllFullMenu(c *gin.Context) ([]models.FullMenu, error) {
 	logger := generateLogger("QueryAllFullMenu")
 
 	var fullMenus []models.FullMenu
 
-	results, err := r.resourceCollection.Find(ctx, bson.M{})
+	results, err := r.resourceCollection.Find(c, bson.M{})
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -75,9 +77,9 @@ func (r *menuRepository) QueryAllFullMenu(ctx *gin.Context) ([]models.FullMenu, 
 		logger.Warnf("find resources failed: %v", err)
 		return nil, err
 	}
-	defer results.Close(ctx)
+	defer results.Close(c)
 
-	for results.Next(ctx) {
+	for results.Next(c) {
 		var menu models.FullMenu
 		if err = results.Decode(&menu); err != nil {
 			logger.Warnf("decode resource failed: %v", err)
@@ -151,4 +153,42 @@ func (r *menuRepository) InsertMenu(c *gin.Context) (newMenu models.FullMenu, er
 	logger.Info("result.InsertedID: %v\n", result.InsertedID)
 
 	return newMenu, nil
+}
+
+func (r *menuRepository) QueryFullMenu(c *gin.Context) (models.FullMenu, error) {
+	logger := generateLogger("QueryFullMenu")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	menuName := c.Param("menuName")
+	var fullMenu models.FullMenu
+	defer cancel()
+
+	err := r.resourceCollection.FindOne(ctx, bson.M{"name": menuName}).Decode(&fullMenu)
+
+	if err != nil {
+		logger.Warnf("find resources failed: %v", err)
+		return fullMenu, err
+	}
+
+	logger.Info("find full menu successfully")
+	return fullMenu, nil
+}
+
+func (r *menuRepository) QueryShortMenu(c *gin.Context) (models.ShortMenu, error) {
+	logger := generateLogger("QueryShortMenu")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	menuName := c.Param("menuName")
+	var shortMenu models.ShortMenu
+	defer cancel()
+
+	err := r.resourceCollection.FindOne(ctx, bson.M{"name": menuName}).Decode(&shortMenu)
+
+	if err != nil {
+		logger.Warnf("find resources failed: %v", err)
+		return shortMenu, err
+	}
+
+	logger.Info("find short menu successfully")
+	return shortMenu, nil
 }
