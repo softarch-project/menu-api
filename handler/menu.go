@@ -31,3 +31,17 @@ func (h *menuHandler) GetAllShortMenu(c *gin.Context) {
 		Data:    shortMenus,
 	})
 }
+
+func (h *menuHandler) GetAllFullMenu(c *gin.Context) {
+	fullMenus, err := h.menuService.GetAllFullMenu(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, responses.MenuResponse{
+		Status:  http.StatusOK,
+		Message: "success",
+		Data:    fullMenus,
+	})
+}

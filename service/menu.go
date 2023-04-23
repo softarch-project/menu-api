@@ -14,6 +14,7 @@ type menuService struct {
 
 type MenuService interface {
 	GetAllShortMenu(ctx context.Context) ([]models.ShortMenu, error)
+	GetAllFullMenu(ctx context.Context) ([]models.FullMenu, error)
 }
 
 func NewMenuService(menuRepository repository.MenuRepository) *menuService {
@@ -34,4 +35,18 @@ func (s *menuService) GetAllShortMenu(ctx context.Context) (shortMenu []models.S
 
 	log.Info("Get all short menu(s) successfully")
 	return shortMenu, err
+}
+
+func (s *menuService) GetAllFullMenu(ctx context.Context) (fullMenus []models.FullMenu, err error) {
+	log.Info("Getting all short menu(s)...")
+	defer log.Info("End getting all short menu(s).")
+
+	fullMenus, err = s.menuRepository.QueryAllFullMenu(ctx)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	log.Info("Get all short menu(s) successfully")
+	return fullMenus, err
 }

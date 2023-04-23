@@ -17,7 +17,7 @@ type menuRepository struct {
 
 type MenuRepository interface {
 	QueryAllShortMenu(ctx context.Context) ([]models.ShortMenu, error)
-	// QueryAllFullMenu() ([]models.FullMenu, error)
+	QueryAllFullMenu(ctx context.Context) ([]models.FullMenu, error)
 	// InsertShortMenu(models.ShortMenu) error
 	// InsertFullMenu(models.FullMenu) error
 }
@@ -59,4 +59,34 @@ func (r *menuRepository) QueryAllShortMenu(ctx context.Context) ([]models.ShortM
 
 	logger.Info("find short menus successfully")
 	return shortMenus, nil
+}
+
+func (r *menuRepository) QueryAllFullMenu(ctx context.Context) ([]models.FullMenu, error) {
+	logger := generateLogger("QueryAllShortMenu")
+
+	var fullMenus []models.FullMenu
+
+	results, err := r.resourceCollection.Find(ctx, bson.M{})
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logger.Warnf("no resources found: %v", err)
+			return nil, err
+		}
+		logger.Warnf("find resources failed: %v", err)
+		return nil, err
+	}
+	defer results.Close(ctx)
+
+	for results.Next(ctx) {
+		var menu models.FullMenu
+		if err = results.Decode(&menu); err != nil {
+			logger.Warnf("decode resource failed: %v", err)
+			return nil, err
+		}
+		fullMenus = append(fullMenus, menu)
+	}
+
+	logger.Info("find full menus successfully")
+	return fullMenus, nil
 }
