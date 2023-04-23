@@ -18,8 +18,8 @@ func NewMenuHandler(menuService service.MenuService) menuHandler {
 	}
 }
 
-func (h *menuHandler) GetAllShortMenu(c *gin.Context) {
-	shortMenus, err := h.menuService.GetAllShortMenu(c)
+func (h *menuHandler) GetShortMenu(c *gin.Context) {
+	shortMenus, err := h.menuService.GetShortMenu(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -32,8 +32,8 @@ func (h *menuHandler) GetAllShortMenu(c *gin.Context) {
 	})
 }
 
-func (h *menuHandler) GetAllFullMenu(c *gin.Context) {
-	fullMenus, err := h.menuService.GetAllFullMenu(c)
+func (h *menuHandler) GetFullMenu(c *gin.Context) {
+	fullMenus, err := h.menuService.GetFullMenu(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

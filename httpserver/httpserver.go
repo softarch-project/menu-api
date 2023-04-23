@@ -42,8 +42,8 @@ func (server *Server) SetUpRouter() {
 
 	menuHandler := handler.NewMenuHandler(menuService)
 
-	server.App.GET("/shortMenu", menuHandler.GetAllShortMenu)
-	server.App.GET("/fullMenu", menuHandler.GetAllFullMenu)
+	server.App.GET("/shortMenu", menuHandler.GetShortMenu)
+	server.App.GET("/fullMenu", menuHandler.GetFullMenu)
 	server.App.GET("/", handler.HealthCheckHandler)
 }
 
