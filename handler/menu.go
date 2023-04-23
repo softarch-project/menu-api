@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/softarch-project/menu-api/responses"
 	"github.com/softarch-project/menu-api/service"
 )
 
@@ -24,5 +25,9 @@ func (h *menuHandler) GetAllShortMenu(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, shortMenus)
+	c.JSON(http.StatusOK, responses.MenuResponse{
+		Status:  http.StatusOK,
+		Message: "success",
+		Data:    shortMenus,
+	})
 }
