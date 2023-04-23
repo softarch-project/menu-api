@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/softarch-project/menu-api/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -20,8 +21,7 @@ type MenuRepository interface {
 	QueryAllShortMenu(ctx *gin.Context) ([]models.ShortMenu, error)
 	QueryAllFullMenu(ctx *gin.Context) ([]models.FullMenu, error)
 	DeleteMenu(ctx *gin.Context) error
-	// InsertShortMenu(models.ShortMenu) error
-	// InsertFullMenu(models.FullMenu) error
+	InsertMenu(ctx *gin.Context) (models.FullMenu, error)
 }
 
 func NewMenuRepository(resourceCollection *mongo.Collection) *menuRepository {
@@ -108,6 +108,47 @@ func (r *menuRepository) DeleteMenu(c *gin.Context) (err error) {
 		logger.Warnf("no resources found: %v", err)
 		return mongo.ErrNoDocuments
 	}
-
+	logger.Info("Delete menu successfully")
 	return nil
+}
+
+func (r *menuRepository) InsertMenu(c *gin.Context) (newMenu models.FullMenu, err error) {
+	logger := generateLogger("InsertMenu")
+	var validate = validator.New()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	var menu models.FullMenu
+	defer cancel()
+
+	if err := c.BindJSON(&menu); err != nil {
+		logger.Error(err)
+		return newMenu, err
+	}
+
+	if validationErr := validate.Struct(&menu); validationErr != nil {
+		logger.Error(validationErr)
+		return newMenu, validationErr
+	}
+
+	newMenu = models.FullMenu{
+		Id:                   primitive.NewObjectID(),
+		Name:                 menu.Name,
+		ThumbnailImage:       menu.ThumbnailImage,
+		FullPrice:            menu.FullPrice,
+		DiscountedPercent:    menu.DiscountedPercent,
+		DiscountedTimePeriod: menu.DiscountedTimePeriod,
+		Sold:                 menu.Sold,
+		TotalInStock:         menu.TotalInStock,
+		LargeImage:           menu.LargeImage,
+		Options:              menu.Options,
+	}
+
+	result, err := r.resourceCollection.InsertOne(ctx, newMenu)
+	if err != nil {
+		logger.Error(err)
+		return newMenu, err
+	}
+	logger.Info("result.InsertedID: %v\n", result.InsertedID)
+
+	return newMenu, nil
 }

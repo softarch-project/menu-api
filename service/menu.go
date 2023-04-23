@@ -15,6 +15,7 @@ type MenuService interface {
 	GetShortMenu(ctx *gin.Context) ([]models.ShortMenu, error)
 	GetFullMenu(ctx *gin.Context) ([]models.FullMenu, error)
 	DeleteMenu(ctx *gin.Context) error
+	InsertMenu(ctx *gin.Context) (models.FullMenu, error)
 }
 
 func NewMenuService(menuRepository repository.MenuRepository) *menuService {
@@ -52,8 +53,9 @@ func (s *menuService) GetFullMenu(ctx *gin.Context) (fullMenus []models.FullMenu
 }
 
 func (s *menuService) DeleteMenu(ctx *gin.Context) (err error) {
-	log.Infof("Deleting menu with id: %d", ctx.Param("menuId"))
-	defer log.Infof("End deleting menu with id: %d", ctx.Param("menuId"))
+	menuId := ctx.Param("menuId")
+	log.Infof("Deleting menu with id: %v", menuId)
+	defer log.Infof("End deleting menu with id: %v", menuId)
 
 	err = s.menuRepository.DeleteMenu(ctx)
 	if err != nil {
@@ -62,4 +64,17 @@ func (s *menuService) DeleteMenu(ctx *gin.Context) (err error) {
 	}
 	log.Info("Delete menu successfully")
 	return
+}
+
+func (s *menuService) InsertMenu(ctx *gin.Context) (menu models.FullMenu, err error) {
+	log.Info("Inserting new menu")
+	defer log.Info("End Inserting new menu")
+
+	menu, err = s.menuRepository.InsertMenu(ctx)
+	if err != nil {
+		log.Error(err)
+		return menu, err
+	}
+	log.Info("Created new menu successfully")
+	return menu, nil
 }

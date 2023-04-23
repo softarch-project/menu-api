@@ -58,3 +58,18 @@ func (h *menuHandler) DeleteMenu(c *gin.Context) {
 		Message: "success",
 	})
 }
+
+func (h *menuHandler) InsertMenu(c *gin.Context) {
+	menu, err := h.menuService.InsertMenu(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, responses.MenuResponse{
+		Status:  http.StatusOK,
+		Message: "success",
+		Data:    menu,
+	})
+
+}

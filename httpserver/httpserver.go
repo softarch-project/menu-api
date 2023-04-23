@@ -46,6 +46,7 @@ func (server *Server) SetUpRouter() {
 	server.App.GET("/shortMenu", menuHandler.GetShortMenu)
 	server.App.GET("/fullMenu", menuHandler.GetFullMenu)
 	server.App.DELETE("/deleteMenu/:menuId", menuHandler.DeleteMenu)
+	server.App.POST("/menu", menuHandler.InsertMenu)
 }
 
 func (server *Server) Start() {
