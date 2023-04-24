@@ -1,7 +1,6 @@
 FROM golang:1.19.3-alpine3.15 AS builder
 WORKDIR /app
-COPY go.mod .
-COPY go.sum .
+COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 RUN go build -o main main.go

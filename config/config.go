@@ -13,7 +13,8 @@ type App struct {
 }
 
 type Database struct {
-	Uri string `mapstructure:"connectionURI"`
+	Username string `mapstructure:"MONGO_USERNAME"`
+	Password string `mapstructure:"MONGO_PASSWORD"`
 }
 
 type Config struct {
@@ -30,7 +31,8 @@ func LoadConfig() *Config {
 	appConfig.GinMode = os.Getenv("GIN_MODE")
 	appConfig.Port = os.Getenv("PORT")
 
-	databaseConfig.Uri = os.Getenv("connectionURI")
+	databaseConfig.Username = os.Getenv("MONGO_USERNAME")
+	databaseConfig.Password = os.Getenv("MONGO_PASSWORD")
 
 	return &Config{
 		App:      appConfig,
