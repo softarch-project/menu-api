@@ -30,7 +30,9 @@ func NewHTTPServer(config *config.Config, db *mongo.Client) *Server {
 }
 
 func (server *Server) SetUpRouter() {
-	server.App.Use(cors.Default())
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"*"}
+	server.App.Use(cors.New(config))
 	server.App.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	db := server.Database.Database("Menu")

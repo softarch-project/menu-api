@@ -9,7 +9,7 @@ import (
 func NewConnectionUrlBuilder(db config.Database) string {
 	var url string
 	url = fmt.Sprintf(
-		"mongodb+srv://%s:%s@menuappcluster.kbempqg.mongodb.net/?retryWrites=true&w=majority",
+		"mongodb+srv://%s:%s@menuappcluster.spwhrkd.mongodb.net/?retryWrites=true&w=majority",
 		db.Username,
 		db.Password,
 	)
